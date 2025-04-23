@@ -57,9 +57,6 @@ sum(is.na(df_blue$rear_Cs_at_start_of_rearing))
 # how many have not been reared
 length(which(df_blue$net_rearing_manipulation == 0))
 
-# changing many chr into int
-df_blue_dNA$rear_Cs_at_start_of_rearing <- 
-  as.numeric(df_blue_dNA$rear_Cs_at_start_of_rearing)
 
 # removing all the coloums that contain any number of NA #
 #---
@@ -79,10 +76,9 @@ sum(is.na(df_blue_dNA$rear_mom_Ring))
 sum(is.na(df_blue_dNA$rear_dad_Ring))
 #--- we will keep rearing mother in the model as the "absent" fathers where plentiful and the theory of paternety uncertenty might be in effect
 
-
-# removing incorectly counted nests
-df_blue_dNA <- df_blue_dNA %>% 
-  filter(chicks_lost_percent >= 0)
+# changing many chr into int
+df_blue_dNA$rear_Cs_at_start_of_rearing <- 
+  as.numeric(df_blue_dNA$rear_Cs_at_start_of_rearing)
 
 
 
@@ -171,7 +167,9 @@ df_blue_dNA %>%
   summarise(chicks_lost_percent) %>% 
   filter(chicks_lost_percent < 0)
 
-
+# removing incorectly counted nests
+df_blue_dNA <- df_blue_dNA %>% 
+  filter(chicks_lost_percent >= 0)
 
 # are the factors gausien
 df_blue_dNA %>% 
@@ -299,7 +297,7 @@ check_model(mblue_dNA.mixed2)
 
 summary(mblue_dNA.mixed2)
 
-df_blue_dNA <- df_blue_dNA
+df_blue_dNA <- df_blue_dNA %>% 
   mutate(chicks_lost_percent = chicks_lost_percent/100)
 
 check_model(mblue_dNA.mixed2,
@@ -383,9 +381,10 @@ anova(mblue_dNA.mixed4.2,
 mblue_dNA.mixed4.3 <- update(mblue_dNA.mixed4,
                              ~. - (1|net_rearing_manipulation))
 
-anova(mblue_dNA.mixed4.3,
-      mblue_dNA.mixed4,
-      test = "Chisq")
+# anova(mblue_dNA.mixed4.3,
+#       mblue_dNA.mixed4,
+#       test = "Chisq") 
+# this gives an ERROR this got us to realise that the data set need more wrangling to remove more NA rows to be able to work the data to the fullest extent.
 
 sum(is.na(df_blue_dNA$net_rearing_manipulation))
 
