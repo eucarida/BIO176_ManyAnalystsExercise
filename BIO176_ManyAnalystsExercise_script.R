@@ -490,27 +490,27 @@ summary(blue_dNA.mixed.t1)
 # För 10 poäng...
 
 # new data 1
-df_new_blue_dNA.1 <-
-  crossing(
-    rear_Cs_at_start_of_rearing =
-      seq(
-        min(df_blue_dNA$rear_Cs_at_start_of_rearing),
-        max(df_blue_dNA$rear_Cs_at_start_of_rearing),
-        length = 100
-      ),
-    chicks_lost_percent =
-      rep(
-        min(df_blue_dNA$chicks_lost_percent),
-        max(df_blue_dNA$chicks_lost_percent),
-        times = 100
-      ),
-    cen_Date_of_day14 =
-      rep(
-        min(df_blue_dNA$cen_Date_of_day14),
-        max(df_blue_dNA$cen_Date_of_day14),
-        times = 100
-      ),
-    hatch_year = c(2001, 2002, 2003))
+# df_new_blue_dNA.1 <-
+#   crossing(
+#     rear_Cs_at_start_of_rearing =
+#       seq(
+#         min(df_blue_dNA$rear_Cs_at_start_of_rearing),
+#         max(df_blue_dNA$rear_Cs_at_start_of_rearing),
+#         length = 100
+#       ),
+#     chicks_lost_percent =
+#       rep(
+#         min(df_blue_dNA$chicks_lost_percent),
+#         max(df_blue_dNA$chicks_lost_percent),
+#         times = 100
+#       ),
+#     cen_Date_of_day14 =
+#       rep(
+#         min(df_blue_dNA$cen_Date_of_day14),
+#         max(df_blue_dNA$cen_Date_of_day14),
+#         times = 100
+#       ),
+#     hatch_year = c(2001, 2002, 2003))
 
 
 
@@ -546,7 +546,7 @@ df_new_blue_dNA.2 <-
 #--- this is our first test
 
 
-# for reffrensing our old work
+# for reffrensing our old work:
 # df_newgrouse3 <- 
 #   tidyr::expand(df_grouse, 
 #                 cen_log_totalcount = seq(min(df_grouse$cen_log_totalcount),
