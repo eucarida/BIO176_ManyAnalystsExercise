@@ -26,6 +26,11 @@ theme_set(theme_bw())
 # load dataframe
 df_blue <- read_csv("blue_tit_data_updated_2020-04-18.csv")
 
+
+
+
+
+
 # data wrangeling ####
 # --- this section id for tidying up the data for model use
 
@@ -74,6 +79,15 @@ sum(is.na(df_blue_dNA$rear_mom_Ring))
 sum(is.na(df_blue_dNA$rear_dad_Ring))
 #--- we will keep rearing mother in the model as the "absent" fathers where plentiful and the theory of paternety uncertenty might be in effect
 
+
+# removing incorectly counted nests
+df_blue_dNA <- df_blue_dNA %>% 
+  filter(chicks_lost_percent >= 0)
+
+
+
+
+
 # data visulisation ####
 
 # maybe we will work the data by the mean of the wight per box/nest not the sigel chick
@@ -84,6 +98,12 @@ df_blue %>%
 
 # find the coloum type
 str(df_blue_dNA)
+
+
+
+
+
+
 
 # ggplot simple graphs ####
 
@@ -136,6 +156,9 @@ df_blue_dNA %>%
   geom_smooth(method = "lm")
 #--- that looks better
 
+
+
+
 # make new coloum for the lost chicks
 df_blue_dNA <- df_blue_dNA %>% 
   mutate(chicks_lost = (rear_Cs_at_start_of_rearing -
@@ -146,10 +169,44 @@ df_blue_dNA <- df_blue_dNA %>%
 
 df_blue_dNA %>% 
   summarise(chicks_lost_percent) %>% 
-  filter(chicks_lost_percent >= 1)
+  filter(chicks_lost_percent < 0)
 
 
-# simple lpm ####
+
+# are the factors gausien
+df_blue_dNA %>% 
+  ggplot(aes(x = rear_Cs_at_start_of_rearing)) +
+  geom_histogram()
+
+df_blue_dNA %>% 
+  ggplot(aes(x = day_14_weight)) +
+  geom_histogram()
+#--- we do not need to log our main factors
+
+
+df_blue_dNA %>% 
+  ggplot(aes(x = chicks_lost_percent)) +
+  geom_histogram()
+
+
+df_blue_dNA %>% 
+  filter(chicks_lost_percent < -1) %>% 
+  group_by(chicks_lost_percent) %>% 
+  summarise(d14 = d14_rear_nest_brood_size,
+            d2 = rear_Cs_at_start_of_rearing,
+            ID = rear_nest_breed_ID,
+            DidrID = chick_ring_number)
+# how does the distribution of chicks lost look graphed with and without 0s
+df_blue_dNA %>% 
+  ggplot(aes(x = chicks_lost_percent)) +
+  geom_histogram()
+
+df_blue_dNA %>% 
+  filter(chicks_lost_percent > 0) %>% 
+  ggplot(aes(x = chicks_lost_percent)) +
+  geom_histogram()
+
+  # simple lpm ####
 
 # setup #
 # lm v.1.0
@@ -160,11 +217,59 @@ check_model(lm_bleu_dNA)
 summary(lm_bleu_dNA)
 #--- looks good, why?... to hell with it all
 
-# generalised models ####
+df_blue_dNA %>% 
+  ggplot(aes(x = Date_of_day14)) +
+  geom_histogram()
+
+df_blue_dNA %>% 
+  ggplot(aes(x = Date_of_day14,
+             y = day_14_weight)) +
+  geom_jitter(height = 0,
+              width = 0.2,
+              alpha = 0.3) +
+  facet_wrap(rear_area ~ hatch_year) +
+  geom_smooth()
+
+df_blue_dNA %>% 
+  ggplot(aes(x = hatch_year,
+             y = Date_of_day14)) +
+  geom_jitter(height = 0,
+              width = 0.2,
+              alpha = 0.3) +
+  facet_wrap(rear_area ~ hatch_year) +
+  geom_smooth()
+
+
+# making sure that all of the catagorical data is a factor
+df_blue_dNA <- df_blue_dNA %>% 
+  mutate(hatch_year = as_factor(hatch_year),
+         rear_mom_Ring = as_factor(rear_mom_Ring),
+         rear_area = as_factor(rear_area),
+         hatch_mom_Ring = as_factor(hatch_mom_Ring),
+         home_or_away = as_factor(home_or_away),
+         net_rearing_manipulation = as_factor(net_rearing_manipulation))
 
 
 
 
+# mixed models ####
+gblue_dNA.mixed <- lmer(day_14_weight ~ 
+                          rear_Cs_at_start_of_rearing + 
+                          chicks_lost_percent +
+                          hatch_year +
+                          Date_of_day14 +
+                          hatch_year:Date_of_day14 +
+                          rear_Cs_at_start_of_rearing:chicks_lost_percent +
+                          (1|hatch_mom_Ring) +
+                          (1|rear_area) +
+                          (1|rear_mom_Ring) +
+                          (1|home_or_away) +
+                          (1|net_rearing_manipulation),
+                        data = df_blue_dNA)
 
 
-
+check_model(gblue_dNA.mixed)
+#--- oooo so much collinearity
+summary(gblue_dNA.mixed)
+#--- home-or _away does not seam to be that great of a effect,
+#--- 
