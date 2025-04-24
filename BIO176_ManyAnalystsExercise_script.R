@@ -563,11 +563,11 @@ df_new_blue_dNA.2 <-
 #                 newdata = df_newgrouse3, 
 #                 level = 0.8,
 #                 n.sims = 100)
-
-blue_pred_dNA.1 <- predictInterval(blue_dNA.mixed.t1,
-                                   newdata = df_new_blue_dNA.2,
-                                   level = 0.8,
-                                   n.sims = 1000)
+# 
+# blue_pred_dNA.1 <- predictInterval(blue_dNA.mixed.t1,
+#                                    newdata = df_new_blue_dNA.2,
+#                                    level = 0.8,
+#                                    n.sims = 1000)
 str(df_blue_dNA)    
        
 
@@ -605,8 +605,8 @@ df_new_blue_dNA.3 <-
            hatch_mom_Ring = levels(df_blue_dNA$hatch_mom_Ring))
 
 # preds 2
-blue_pred_dNA.3 <- predict(blue_dNA.mixed.t1,
-                           newdata = df_new_blue_dNA.3)
+# blue_pred_dNA.3 <- predict(blue_dNA.mixed.t1,
+#                            newdata = df_new_blue_dNA.3)
 
 
 # god damit!!
@@ -650,3 +650,60 @@ blue_bind.4 %>%
   geom_jitter(data = df_blue_dNA,
               aes(y = day_14_weight)) +
   facet_wrap( ~ rear_mom_Ring)
+
+
+
+
+
+# new data 5 useing sample() to pick random variables 
+df_new_blue_dNA.5 <- 
+  crossing(rear_Cs_at_start_of_rearing = 
+             seq(min(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 max(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 length = 5),
+           chicks_lost_percent = 
+             rep(mean(df_blue_dNA$chicks_lost_percent)),
+           cen_Date_of_day14 =
+             rep(mean(df_blue_dNA$cen_Date_of_day14)),
+           hatch_year = factor(c(2001, 2002, 2003)),
+           hatch_mom_Ring = 
+             factor(c("P803273")),
+           rear_mom_Ring =
+             factor(c("P803691", "P803305")),
+           net_rearing_manipulation = 0,
+           home_or_away = factor(c(1,2)),
+           rear_area = "W")
+
+# # "P803343",
+# "P803087", "P803568",
+# "P803090", "P803258",
+# "P804115", "P806953",
+# "P806953", "P803474"
+# "P803294", "P803222", 
+# "P803289", "P803266", 
+# "P803071", "P803339", 
+# "P803173", "P803351"
+
+# test using samples
+# sample(df_blue_dNA$rear_area, 1, replace = TRUE)
+blue_pred_dNA.5 <- predict(blue_dNA.mixed.t1,
+                           newdata = df_new_blue_dNA.5,
+                           re.form = ~0)
+
+blue_bind.5 <- bind_cols(df_new_blue_dNA.5,
+                         as_tibble(blue_pred_dNA.5))
+
+
+blue_bind.5 %>% 
+  filter(home_or_away == 1) %>% 
+  ggplot(aes(x = rear_Cs_at_start_of_rearing,
+             y = value)) +
+  geom_line() +
+  facet_wrap( ~ hatch_year) +
+  geom_jitter(data = df_blue_dNA,
+              aes(y = day_14_weight),
+              alpha =0.3)
+  
+
+blue_bind.5 %>% 
+  print(width = Inf)
