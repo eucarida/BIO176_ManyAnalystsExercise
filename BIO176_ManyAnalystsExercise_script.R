@@ -416,6 +416,9 @@ sum(is.na(df_blue_dNA$rear_mom_Ring))
 
 ## A redo of what is above but with removed NA ####
 
+df_blue_dNA <- df_blue_dNA %>% 
+  mutate(chicks_lost_percent = chicks_lost_percent*100)
+
 # v.1.4 we remove chicks lost rear Cs interaction
 blue_dNA.mixed.t1 <- lmer(day_14_weight ~ 
                            rear_Cs_at_start_of_rearing + 
@@ -515,6 +518,7 @@ summary(blue_dNA.mixed.t1)
 
 
 # new data 2 
+# this creates all posibel
 df_new_blue_dNA.2 <-
   tidyr::expand(
     df_blue_dNA,
@@ -565,5 +569,84 @@ blue_pred_dNA.1 <- predictInterval(blue_dNA.mixed.t1,
                                    level = 0.8,
                                    n.sims = 1000)
 str(df_blue_dNA)    
-                            
+       
 
+# we get an error "`contrasts<-`(`*tmp*`, value = ca)" now we try to fix it
+(l <- sapply(df_new_blue_dNA.2, function(x) is.factor(x)))
+
+m <- df_new_blue_dNA.2[, l]
+#--- it seams like we do not meat the requirements to recive this error 
+#--- as we do not have variables with only one level, it may also be due to
+#--- the existans of an NA so lets check for that
+
+df_new_blue_dNA.2 %>% 
+  summarise(across(everything(), ~ sum(is.na(.)))) %>% # count NA in columns
+  print(width = Inf) # print all columns 
+
+# so there are no NA as expected from previusource.with.encoding.
+# the problem is there for somthing els, if the problem is insufisiant levels
+# then maby one of the variables is to small
+
+# we did not use this but its here
+#ifelse(n <- sapply(m, function(x) length(levels(x))) == 1, "DROP", "NODROP")
+
+# new data 2
+df_new_blue_dNA.3 <- 
+  crossing(rear_Cs_at_start_of_rearing = 
+             seq(min(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 max(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 length = 5),
+           chicks_lost_percent = 
+             rep(mean(df_blue_dNA$chicks_lost_percent)),
+           cen_Date_of_day14 =
+             rep(mean(df_blue_dNA$cen_Date_of_day14)),
+           hatch_year = c(2001, 2002, 2003),
+           rear_mom_Ring = levels(df_blue_dNA$rear_mom_Ring),
+           hatch_mom_Ring = levels(df_blue_dNA$hatch_mom_Ring))
+
+# preds 2
+blue_pred_dNA.3 <- predict(blue_dNA.mixed.t1,
+                           newdata = df_new_blue_dNA.3)
+
+
+# god damit!!
+
+xtabs(~rear_mom_Ring + 
+        hatch_mom_Ring,
+      data = df_blue_dNA)
+
+# new data 2
+df_new_blue_dNA.4 <- 
+  crossing(rear_Cs_at_start_of_rearing = 
+             seq(min(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 max(df_blue_dNA$rear_Cs_at_start_of_rearing),
+                 length = 5),
+           chicks_lost_percent = 
+             rep(mean(df_blue_dNA$chicks_lost_percent)),
+           cen_Date_of_day14 =
+             rep(mean(df_blue_dNA$cen_Date_of_day14)),
+           hatch_year = factor(c(2001, 2002, 2003)),
+           rear_mom_Ring = "P803010",
+           net_rearing_manipulation = 0,
+           home_or_away = factor(c(1,2)),
+           rear_area = levels(df_blue_dNA$rear_area),
+           hatch_mom_Ring = "P803189") 
+# hatch_mom_Ring = sample(df_blue_dNA$hatch_mom_Ring, 20))
+# rear_mom_Ring = sample(df_blue_dNA$rear_mom_Ring, 20)
+blue_pred_dNA.4 <- predict(blue_dNA.mixed.t1,
+                           newdata = df_new_blue_dNA.4,
+                           re.form = ~0)
+
+blue_bind.4 <- bind_cols(df_new_blue_dNA.4,
+                         as_tibble(blue_pred_dNA.4))
+
+
+blue_bind.4 %>% 
+  filter(hatch_year == 2002, 
+         home_or_away == 1) %>% 
+  ggplot(aes(x = rear_Cs_at_start_of_rearing,
+             y = value)) +
+  geom_line() +
+  geom_jitter(data = df_blue_dNA,
+              aes(y = day_14_weight)) +
+  facet_wrap( ~ rear_mom_Ring)
