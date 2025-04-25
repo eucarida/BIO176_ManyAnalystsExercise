@@ -1,5 +1,5 @@
 # created 2025-04-22 by eucarida
-# ats updated 2025-04-22 by eucarida
+# ats updated 2025-04-25 by eucarida
 # GOAL: Generate a model for the Many Analyst Exercise in BIO176
 # IMPORTANT the script is aranged into sections and not the order of actions all the time. ONE must load all of the "data wrangeling" section befor proseading 
 
@@ -706,4 +706,15 @@ blue_bind.5 %>%
   
 
 blue_bind.5 %>% 
+  print(width = Inf)
+
+# extra ####
+
+df_blue %>% 
+  summarise(across(everything(), ~ sum(is.na(.)))) %>% 
+  str()
+
+str(df_blue)
+
+df_blue %>% 
   print(width = Inf)
