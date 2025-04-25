@@ -163,6 +163,40 @@ df_blue_dNA <- df_blue_dNA %>%
 df_blue_dNA <- df_blue_dNA %>% 
   mutate(chicks_lost_percent = (chicks_lost/rear_Cs_at_start_of_rearing)*100)
 
+## extra
+df_blue_dNA %>% 
+  group_by(chicks_lost_percent) %>% 
+  summarise(Start = rear_Cs_at_start_of_rearing,
+            End = d14_rear_nest_brood_size) %>% 
+  distinct(.keep_all = TRUE) %>% 
+  print(n = Inf)
+
+# chicks lost
+df_blue_dNA %>% 
+  ggplot(aes(x = rear_Cs_at_start_of_rearing,
+             y = chicks_lost)) +
+  geom_jitter(alpha = 0.3,
+              width = 0.3) +
+  stat_smooth(method = "lm")
+
+# chicks lost percent
+df_blue_dNA %>% 
+  ggplot(aes(x = rear_Cs_at_start_of_rearing,
+             y = chicks_lost_percent)) +
+  geom_jitter(alpha = 0.3,
+              width = 0.3) +
+  stat_smooth(method = "lm")
+
+
+lm_lost <- lm(chicks_lost_percent ~ rear_Cs_at_start_of_rearing,
+              data = df_blue_dNA)
+
+check_model(lm_lost)
+summary(lm_lost)
+
+
+# +d14_rear_nest_brood_size
+## end of extra
 df_blue_dNA %>% 
   summarise(chicks_lost_percent) %>% 
   filter(chicks_lost_percent < 0)
